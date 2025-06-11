@@ -1,0 +1,23 @@
+El usuario no veia los Jobs que habia creado otro usuario dentro de SQL Agent dentro de un Servidor de Base de Datos SQL Server
+
+Primero se verifico que el usuario tenga algun rol de los necesarios para trabajar con Jobs 'SQLAgentUserRole', 'SQLAgentReaderRole' o 'SQLAgentOperatorRole'
+
+USE msdb;
+SELECT 
+    r.name AS RoleName,
+    m.name AS MemberName
+FROM sys.database_role_members drm
+JOIN sys.database_principals r ON drm.role_principal_id = r.principal_id
+JOIN sys.database_principals m ON drm.member_principal_id = m.principal_id
+WHERE r.name IN ('SQLAgentUserRole', 'SQLAgentReaderRole', 'SQLAgentOperatorRole');
+
+Se pudo ver que el usuario tenia el siguiente rol 'SQLAgentUserRole'. Este rol si bien permite creacion, ejecucion y modificacion de un job, es solo de un job que el propio usuario haya creado.
+  Entonces:
+  2 caminos, o le permitimos ver todos los jobs sin la posibilidad de que los modifique 'SQLAgentReaderRole' o con permisos de modificacion 'SQLAgentOperatorRole'
+
+En este caso, al ser un servidor DEV/TEST, y al requerir su accion a modificar para realizar unas pruebas, se le dio permiso de modificacion de la siguiente manera:
+
+USE msdb;
+EXEC sp_addrolemember 'SQLAgentOperatorRole', 'usuario';
+
+
